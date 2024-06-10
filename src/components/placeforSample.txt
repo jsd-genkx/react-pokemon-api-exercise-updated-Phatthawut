@@ -1,0 +1,153 @@
+import { useEffect, useState, useContext, createContext } from "react";
+import { Link } from "react-router-dom";
+import { MembershipContext } from "./main";
+
+const ComponentA = () => {
+  const [number, setNumber] = useState(0);
+  const [number2, setNumber2] = useState(0);
+  useEffect(() => {
+    alert("Component A is rendered.");
+
+    return () => {
+      alert("Component A is unmounted.");
+    };
+  }, []);
+
+  useEffect(() => {
+    alert("update");
+  }, [number, number2]);
+
+  return (
+    <>
+      <button
+        onClick={() => setNumber(number + 1)}
+        style={{ backgroundColor: "red" }}
+      >
+        +
+      </button>
+      <button
+        onClick={() => setNumber2(number2 - 1)}
+        style={{ backgroundColor: "red" }}
+      >
+        -
+      </button>
+      <h1>Component A: {number}</h1>
+      <h3>{number2}</h3>
+    </>
+  );
+};
+
+const MyContext = createContext();
+
+const ComponentB = () => {
+  const value = "value from B";
+
+  return (
+    <>
+      <MyContext.Provider
+        value={{
+          variableFromComponentB: "Value from component B via context",
+        }}
+      >
+        <h1>Component B</h1>
+        <ComponentBB value={value} />
+      </MyContext.Provider>
+    </>
+  );
+};
+
+const ComponentBB = (props) => {
+  const value = props.value;
+  return (
+    <div>
+      <h2>Component BB</h2>
+      <ComponentBBB value={value} />
+    </div>
+  );
+};
+
+const ComponentBBB = (props) => {
+  const myUseContext = useContext(MyContext);
+  const value = props.value;
+  return (
+    <div>
+      <h3>Component BBB: {value}</h3>
+      {myUseContext.variableFromComponentB}
+    </div>
+  );
+};
+
+function App() {
+  const [toggle, setToggle] = useState(false);
+  const [username, setUsername] = useState("");
+  const membershipContext = useContext(MembershipContext);
+  return (
+    <>
+      <Link to={"/login"}>Login</Link>
+      <br />
+      <br />
+      <br />
+      <h1>Username: {membershipContext.username}</h1>
+      <h3>Toggle: {toggle ? "true" : "false"}</h3>
+      <button onClick={() => setToggle(true)}>Show A</button>
+      <button onClick={() => setToggle(false)}>Show B</button>
+      {toggle === true ? <ComponentA /> : <ComponentB />}
+    </>
+  );
+}
+
+export default App;
+main.jsx
+import React, { createContext } from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import Login from "./Login.jsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+]);
+
+// 1) Create context
+export const MembershipContext = createContext();
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  // <React.StrictMode>
+  <MembershipContext.Provider
+    value={{
+      username: "Mintara Ramanard",
+    }}
+  >
+    <RouterProvider router={router}></RouterProvider>
+  </MembershipContext.Provider>
+  // </React.StrictMode>
+);
+Login.jsx
+import { useContext, useState } from "react";
+import { Link } from "react-router-dom";
+import { MembershipContext } from "./main";
+
+const Login = () => {
+  // 2) useContext
+  const membershipContext = useContext(MembershipContext);
+  console.log(membershipContext);
+  return (
+    <div>
+      <Link to={"/"}>Home</Link>
+      <br />
+      <br />
+      <br />
+      {membershipContext.username}
+      {/* <button onClick={() => setUsername("Kanin James")}>Login</button> */}
+    </div>
+  );
+};
+
+export default Login;
